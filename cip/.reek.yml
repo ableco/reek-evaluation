@@ -1,0 +1,11 @@
+detectors:
+  IrresponsibleModule:
+    enabled: false
+  FeatureEnvy:
+    exclude:
+      - 'College#calculate_more_programs_count'
+  Attribute:
+    exclude:
+      - 'College#sat_percentiles_average'
+      - 'College#distance'
+      - 'College#admission_category'

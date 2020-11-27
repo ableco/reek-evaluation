@@ -158,10 +158,11 @@ class College < ApplicationRecord
   def logo_url
     if self.logo.attached?
       resized_logo = logo.variant(resize_to_fill: [144, 144])
+      url_helpers = Rails.application.routes.url_helpers
       if Rails.env.production?
-        Rails.application.routes.url_helpers.rails_representation_path(resized_logo)
+        url_helpers.rails_representation_path(resized_logo)
       else
-        Rails.application.routes.url_helpers.url_for(resized_logo)
+        url_helpers.url_for(resized_logo)
       end
     end
   end
