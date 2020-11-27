@@ -1,0 +1,7 @@
+detectors:
+  IrresponsibleModule:
+    enabled: false
+  Attribute:
+    exclude:
+      - 'InvestmentValuation#given_price_per_unit'
+      - 'InvestmentValuation#requires_given_price_per_unit'

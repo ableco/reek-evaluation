@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class InvestmentValuation < ActiveRecord::Base
   has_paper_trail
 
@@ -37,9 +39,9 @@ class InvestmentValuation < ActiveRecord::Base
   end
 
   def price_per_unit
-    return 0 if unit_count.nil? || unit_count.zero?
+    return 0 if (unit_count || 0).zero?
 
-    unit_count ? amount / unit_count : 0
+    amount / unit_count
   end
 
   private
@@ -70,21 +72,16 @@ class InvestmentValuation < ActiveRecord::Base
     end
   end
 
-  def update_previous_investment_valuation_amount
-    if investment.nil? || (
-      !saved_change_to_attribute?(:date) &&
-      !saved_change_to_attribute?(:amount)
-    )
-      return nil
+  class NullInvestment
+    def update_ongoing_valuations
+      #---
     end
+  end
 
-    ongoing_valuations = investment.valuations.ongoing
-    ongoing_valuations.each_with_index do |sorted_valuation, index|
-      previous_investment_valuation_amount =
-        index.zero? ? nil : ongoing_valuations[index - 1].amount
-      sorted_valuation.update_columns(
-        previous_investment_valuation_amount: previous_investment_valuation_amount
-      )
-    end
+  def update_previous_investment_valuation_amount
+    date_and_amount_saved = saved_change_to_attribute?(:date) && saved_change_to_attribute?(:amount)
+    return unless date_and_amount_saved
+
+    (investment || NullInvestment.new).update_ongoing_valuations
   end
 end
