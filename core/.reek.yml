@@ -1,0 +1,16 @@
+detectors:
+  IrresponsibleModule:
+    enabled: false
+  TooManyMethods:
+    enabled: false
+  MissingSafeMethod:
+    exclude:
+      - 'manager_mark_as_read!'
+      - 'mark_as_liked!'
+      - 'mark_as_reviewed!'
+      - 'publish!'
+  NilCheck:
+    exclude:
+      - 'FeedbackMessage#coaching_tip_created_for_the_first_time?'
+      - 'FeedbackMessage#feedback_submitted?'
+      - 'FeedbackMessage#mark_as_read'
