@@ -84,7 +84,7 @@ class PotentialLawyer < ApplicationRecord
 
     # Since this potential_lawyer has an associated lawyer it no longer
     # needs to have an address (lawyer_profile has one)
-    potential_lawyer.address.destroy if potential_lawyer.address
+    potential_lawyer.address&.destroy
   end
 
   def lawyer_class

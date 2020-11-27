@@ -1,0 +1,8 @@
+detectors:
+  IrresponsibleModule:
+    enabled: false
+  TooManyStatements:
+    max_statements: 10
+  MissingSafeMethod:
+    exclude:
+      - subscribe_mailchimp_clone_list!
