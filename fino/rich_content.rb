@@ -1,4 +1,37 @@
+# frozen_string_literal: true
+
+class JsonUtil
+  def self.json_with_string_fallback(value)
+    ActiveSupport::JSON.decode(value)
+  rescue JSON::ParserError
+    [RichContentNode.text(value)]
+  end
+end
+
+module Nodeable
+  def mention_nodes
+    RichContentNode.extract_nodes(children) { |node| RichContentNode.mention?(node) }
+  end
+
+  def annotation_nodes
+    RichContentNode.extract_nodes(children) { |node| RichContentNode.annotation?(node) }
+  end
+end
+
+module Formateable
+  def text
+    RichContentNode.extract_text(children)
+  end
+
+  def html
+    RichContentSerializer.serialize(children)
+  end
+end
+
 class RichContent < ApplicationRecord
+  include Nodeable
+  include Formateable
+
   belongs_to :record, polymorphic: true, touch: true
 
   has_many :rich_content_annotations, dependent: :destroy
@@ -8,11 +41,11 @@ class RichContent < ApplicationRecord
   before_save :remove_stale_annotations
 
   def children
-    root.fetch("children", [])
+    root.fetch('children', [])
   end
 
   def children=(value)
-    set_root(json_with_string_fallback(value))
+    set_root(JsonUtil.json_with_string_fallback(value))
   end
 
   def remove_annotation(id)
@@ -29,19 +62,11 @@ class RichContent < ApplicationRecord
   end
 
   def mention_ids
-    mention_nodes.pluck("id")
-  end
-
-  def mention_nodes
-    RichContentNode.extract_nodes(children) { |node| RichContentNode.mention?(node) }
-  end
-
-  def annotation_nodes
-    RichContentNode.extract_nodes(children) { |node| RichContentNode.annotation?(node) }
+    mention_nodes.pluck('id')
   end
 
   def active_annotation_ids
-    annotation_nodes.pluck("id")
+    annotation_nodes.pluck('id')
   end
 
   def stale_annotation_ids
@@ -50,14 +75,6 @@ class RichContent < ApplicationRecord
 
   def pending_rich_content_annotation_ids
     rich_content_annotations.pending.pluck(:id)
-  end
-
-  def text
-    RichContentNode.extract_text(children)
-  end
-
-  def html
-    RichContentSerializer.serialize(children)
   end
 
   def pending_questions_count
@@ -69,17 +86,12 @@ class RichContent < ApplicationRecord
   end
 
   def closed_annotations_count
-    @closed_annotations_count ||= rich_content_annotations.published.dismissed.count +
-                                  rich_content_annotations.published.accepted.count
+    published_annotations = rich_content_annotations.published
+    @closed_annotations_count ||= published_annotations.dismissed.count +
+                                  published_annotations.accepted.count
   end
 
   private
-
-  def json_with_string_fallback(value)
-    ActiveSupport::JSON.decode(value)
-  rescue JSON::ParserError
-    [RichContentNode.text(value)]
-  end
 
   def remove_stale_annotations
     rich_content_annotations.where(id: stale_annotation_ids).update_all(status: :dismissed)
